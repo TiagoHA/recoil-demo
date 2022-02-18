@@ -1,20 +1,20 @@
-import React from "react";
-import { atom, selector, useRecoilState, useRecoilValue } from "recoil";
+import React from 'react';
+import { atom, selector, useRecoilState, useRecoilValue } from 'recoil';
 
 const shopConfigState = atom({
-  key: "shopState",
+  key: 'shopState',
   default: {
     discount: 0,
   },
 });
 
 const cartState = atom({
-  key: "cartState",
+  key: 'cartState',
   default: [],
 });
 
 const cartDetailsState = selector({
-  key: "cartDetailsState",
+  key: 'cartDetailsState',
   get: ({ get }) => {
     const { discount } = get(shopConfigState);
     const cart = get(cartState);
@@ -33,29 +33,30 @@ const cartDetailsState = selector({
 });
 
 const products = [
-  { name: "Toothbrush", price: 10 },
-  { name: "Smart TV", price: 800 },
-  { name: "Laptop", price: 600 },
-  { name: "Chocolate", price: 12 },
-  { name: "Apple juice", price: 5 },
+  { name: 'Toothbrush', price: 10 },
+  { name: 'Smart TV', price: 800 },
+  { name: 'Laptop', price: 600 },
+  { name: 'Chocolate', price: 12 },
+  { name: 'Apple juice', price: 5 },
 ];
 
-const getProductsFromDB = async () =>
-  new Promise((resolve) => {
+async function getProductsFromDB() {
+  return new Promise((resolve) => {
     setTimeout(() => resolve(products), 2500);
   });
+}
 
 const productsQuery = selector({
-  key: "Products",
+  key: 'Products',
   get: async () => getProductsFromDB(),
 });
 
-const ShopConfig = () => {
+function ShopConfig() {
   const [shopState, setShopState] = useRecoilState(shopConfigState);
 
-  const updateDiscount = ({ target: { value } }) => {
+  function updateDiscount({ target: { value } }) {
     setShopState({ ...shopState, discount: value });
-  };
+  }
 
   return (
     <div>
@@ -68,9 +69,9 @@ const ShopConfig = () => {
       </select>
     </div>
   );
-};
+}
 
-const ShopProducts = ({ onAddToCart }) => {
+function ShopProducts({ onAddToCart }) {
   const shopProducts = useRecoilValue(productsQuery);
 
   return (
@@ -86,50 +87,53 @@ const ShopProducts = ({ onAddToCart }) => {
       </div>
     </>
   );
-};
+}
 
-const Cart = ({ products, onRemoveFromCart }) => (
-  <>
-    CART:
+function Cart({ products, onRemoveFromCart }) {
+  return (
+    <>
+      CART:
+      <div>
+        {!products.length
+          ? 'Empty'
+          : products.map((product) => (
+              <p key={product.name}>
+                {product.name} (${product.price})
+                <button onClick={() => onRemoveFromCart(product)}>Remove</button>
+              </p>
+            ))}
+      </div>
+    </>
+  );
+}
+
+function CartDetails({ total, discount, discountAmount, setCart }) {
+  return (
     <div>
-      {!products.length
-        ? "Empty"
-        : products.map((product) => (
-            <p key={product.name}>
-              {product.name} (${product.price})
-              <button onClick={() => onRemoveFromCart(product)}>Remove</button>
-            </p>
-          ))}
+      <p>
+        DISCOUNT: {discount * 100}% (${discountAmount})
+      </p>
+      <p>TOTAL: {total}</p>
+      <p>TOTAL AFTER DISCOUNT: {total - discountAmount}</p>
+      <button onClick={() => setCart([])}>Clear cart</button>
     </div>
-  </>
-);
+  );
+}
 
-const CartDetails = ({ total, discount, discountAmount, setCart }) => (
-  <div>
-    <p>
-      DISCOUNT: {discount * 100}% (${discountAmount})
-    </p>
-    <p>TOTAL: {total}</p>
-    <p>TOTAL AFTER DISCOUNT: {total - discountAmount}</p>
-    <button onClick={() => setCart([])}>Clear cart</button>
-  </div>
-);
-
-const App = () => {
+export default function App() {
   const [cart, setCart] = useRecoilState(cartState);
   const { discount } = useRecoilValue(shopConfigState);
-  const [{ total, discountAmount }, setCartFromSelector] =
-    useRecoilState(cartDetailsState);
+  const [{ total, discountAmount }, setCartFromSelector] = useRecoilState(cartDetailsState);
 
-  const addToCart = (product) =>
+  function addToCart(product) {
     setCart((cart) =>
-      cart.find((item) => item.name === product.name)
-        ? cart
-        : [...cart, product]
+      cart.find((item) => item.name === product.name) ? cart : [...cart, product]
     );
+  }
 
-  const removeFromCart = (product) =>
+  function removeFromCart(product) {
     setCart((cart) => cart.filter((item) => item.name !== product.name));
+  }
 
   return (
     <div>
@@ -146,6 +150,4 @@ const App = () => {
       />
     </div>
   );
-};
-
-export default App;
+}
